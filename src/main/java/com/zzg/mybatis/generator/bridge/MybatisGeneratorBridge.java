@@ -56,9 +56,7 @@ public class MybatisGeneratorBridge {
         Configuration configuration = new Configuration();
         Context context = new Context(ModelType.CONDITIONAL);
         configuration.addContext(context);
-
         context.addProperty("javaFileEncoding", "UTF-8");
-
         String dbType = selectedDatabaseConfig.getDbType();
         String connectorLibPath = ConfigHelper.findConnectorLibPath(dbType);
         _LOG.info("connectorLibPath: {}", connectorLibPath);
@@ -72,14 +70,15 @@ public class MybatisGeneratorBridge {
         tableConfig.setCountByExampleStatementEnabled(false);
         tableConfig.setDeleteByExampleStatementEnabled(false);
         tableConfig.setSelectByExampleStatementEnabled(false);
+
         // 1 如果禁用掉会导致 resultMap 没了
         tableConfig.setSelectByPrimaryKeyStatementEnabled(true);
         // 2
-        tableConfig.setSelectByExampleStatementEnabled(false);
-        // 3
         tableConfig.setDeleteByPrimaryKeyStatementEnabled(false);
+        // 3
+        tableConfig.setInsertStatementEnabled(true);
         // 4
-        tableConfig.setInsertStatementEnabled(false);
+        tableConfig.setUpdateByPrimaryKeyStatementEnabled(true);
 
         context.addProperty("autoDelimitKeywords", "true");
         if (DbType.MySQL.name().equals(dbType) || DbType.MySQL_8.name().equals(dbType)) {
@@ -189,6 +188,12 @@ public class MybatisGeneratorBridge {
         serializablePluginConfiguration.addProperty("type", "org.mybatis.generator.plugins.SerializablePlugin");
         serializablePluginConfiguration.setConfigurationType("org.mybatis.generator.plugins.SerializablePlugin");
         context.addPluginConfiguration(serializablePluginConfiguration);
+
+        // 排除部分dao层方法。
+        PluginConfiguration mapperPluginConfiguration = new PluginConfiguration();
+        mapperPluginConfiguration.addProperty("type", "com.zzg.mybatis.generator.plugins.MapperGeneratorPlugin");
+        mapperPluginConfiguration.setConfigurationType("com.zzg.mybatis.generator.plugins.MapperGeneratorPlugin");
+        context.addPluginConfiguration(mapperPluginConfiguration);
 
         // lombok 插件
         if (generatorConfig.isNeedLombok()) {
